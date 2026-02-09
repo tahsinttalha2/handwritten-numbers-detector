@@ -25,100 +25,104 @@ transform_pipeline = transforms.Compose([
     transforms.ToTensor()
 ])
 
-# store gpu info
-gpu_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+def main():
+    # store gpu info
+    gpu_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# instantiate the class
-HNmodel = HandNumDetector().to(gpu_device)
+    # instantiate the class
+    HNmodel = HandNumDetector().to(gpu_device)
 
-# download training data
-train_set = torchvision.datasets.MNIST(
-    root= "./data",
-    train= True,
-    download= True,
-    transform= transform_pipeline
-)
+    # download training data
+    train_set = torchvision.datasets.MNIST(
+        root= "./data",
+        train= True,
+        download= True,
+        transform= transform_pipeline
+    )
 
-# download test data
-test_set = torchvision.datasets.MNIST(
-    root= "./data",
-    train= False,
-    download= True,
-    transform= transform_pipeline
-)
+    # download test data
+    test_set = torchvision.datasets.MNIST(
+        root= "./data",
+        train= False,
+        download= True,
+        transform= transform_pipeline
+    )
 
-# load the training dataset
-train_loader = torch.utils.data.DataLoader(
-    train_set,
-    batch_size= 64,
-    shuffle= True
-)
+    # load the training dataset
+    train_loader = torch.utils.data.DataLoader(
+        train_set,
+        batch_size= 64,
+        shuffle= True
+    )
 
-# load the test dataset
-test_loader = torch.utils.data.DataLoader(
-    test_set,
-    shuffle= True,
-    batch_size= 64
-)
+    # load the test dataset
+    test_loader = torch.utils.data.DataLoader(
+        test_set,
+        shuffle= True,
+        batch_size= 64
+    )
 
-# create the loss function & optimizer
-loss_function = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(HNmodel.parameters(), lr = 0.001)
+    # create the loss function & optimizer
+    loss_function = nn.CrossEntropyLoss()
+    optimizer = torch.optim.Adam(HNmodel.parameters(), lr = 0.001)
 
-# the training loop
-for epoch in range(epochs):
-    for i, (images, labels) in enumerate(train_loader):
-        # move data to gpu
+    # the training loop
+    for epoch in range(epochs):
+        for i, (images, labels) in enumerate(train_loader):
+            # move data to gpu
+            images = images.to(gpu_device)
+            labels = labels.to(gpu_device)
+
+            # forward pass
+            outputs = HNmodel(images)
+            loss = loss_function(outputs, labels)
+
+            # backward & optimize
+            optimizer.zero_grad() 
+            loss.backward()
+            optimizer.step()
+
+            # print progress after each 64 batches
+            if (i + 1) % 64 == 0:
+                print(f"Epoch: {epoch + 1}/{epochs}, Step: {i + 1}, Loss: {loss.item():.4f}")
+
+    # switch to evaluation mode
+    HNmodel.eval()
+
+    with torch.no_grad():
+        correct = 0
+        total = 0
+
+        for images, labels in test_loader:
+            images = images.to(gpu_device)
+            labels = labels.to(gpu_device)
+
+            outputs = HNmodel(images)
+
+            # torch.max returns (max_value, index_of_max_value)
+            _, predicted = torch.max(outputs.data, 1)
+
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+        print(f"Accuracy: {100 * correct / total}%")
+
+    # perform inference
+    for i in range(10):
+        data_iterator = iter(test_loader)
+        images, labels = next(data_iterator)
         images = images.to(gpu_device)
-        labels = labels.to(gpu_device)
-
-        # forward pass
-        outputs = HNmodel(images)
-        loss = loss_function(outputs, labels)
-
-        # backward & optimize
-        optimizer.zero_grad() 
-        loss.backward()
-        optimizer.step()
-
-        # print progress after each 64 batches
-        if (i + 1) % 64 == 0:
-            print(f"Epoch: {epoch + 1}/{epochs}, Step: {i + 1}, Loss: {loss.item():.4f}")
-
-# switch to evaluation mode
-HNmodel.eval()
-
-with torch.no_grad():
-    correct = 0
-    total = 0
-
-    for images, labels in test_loader:
-        images = images.to(gpu_device)
-        labels = labels.to(gpu_device)
-
         outputs = HNmodel(images)
 
-        # torch.max returns (max_value, index_of_max_value)
-        _, predicted = torch.max(outputs.data, 1)
+        _, predicted = torch.max(outputs, 1)
 
-        total += labels.size(0)
-        correct += (predicted == labels).sum().item()
+        img = images[0].cpu().squeeze()
 
-    print(f"Accuracy: {100 * correct / total}%")
+        plot.imshow(img, cmap= "gray")
+        plot.title(f"Label: {labels[0].item()} | Prediction: {predicted[0].item()}")
+        plot.savefig(f"my_prediction{i}.png")
 
-# perform inference
-for i in range(10):
-    data_iterator = iter(test_loader)
-    images, labels = next(data_iterator)
-    images = images.to(gpu_device)
-    outputs = HNmodel(images)
+    torch.save(HNmodel.state_dict(), "HNmodel1.pth")
 
-    _, predicted = torch.max(outputs, 1)
-
-    img = images[0].cpu().squeeze()
-
-    plot.imshow(img, cmap= "gray")
-    plot.title(f"Label: {labels[0].item()} | Prediction: {predicted[0].item()}")
-    plot.savefig(f"my_prediction{i}.png")
-
-torch.save(HNmodel.state_dict(), "HNmodel1.pth")
+if __name__ == "__main__":
+    main()
