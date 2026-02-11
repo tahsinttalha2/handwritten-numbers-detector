@@ -12,23 +12,24 @@ from PIL import Image, ImageOps
 import numpy as np
 
 @st.cache_resource
-def load_model():
+def load_model(model_name):
     model = HandNumDetector()
     gpu_device = "cuda" if torch.cuda.is_available() else "cpu"
-    model.load_state_dict(torch.load("HNmodel1.pth", map_location= torch.device(gpu_device)))
+    model.load_state_dict(torch.load(model_name, map_location= torch.device(gpu_device)))
     model.eval()
 
     return model
 
-model = load_model()
-
 st.title("Handwritten Digit Recognizer")
 st.write("Upload an image of a handwritten digit and see if the model can read that!")
 
-model_name = st.selectbox(
+model_selected = st.selectbox(
     "Choose your desired Model",
-    ("HNmodel v1.0"),
+    ("HNmodel v1.0 (Linear Model)", "HNmodel v2.0 (CNN Model)"),
 )
+
+model_name = "HNmodel1.pth" if model_selected == "HNmodel v1.0 (Linear Model)" else "HNmodel2.pth"
+model = load_model(model_name)
 
 image = st.file_uploader(
     label = "Upload an Image of a Number",
