@@ -6,11 +6,26 @@ import matplotlib.pyplot as plot
 
 epochs = 10
 
-class HandNumDetector(nn.Module):
+class HandNumDetectorLinear(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.features == nn.Sequential(
+        # previour linear layer
+        self.layer1 = nn.Linear(784, 128) # first layer param: input_size(28 x 28 = 784), hidden_size(random, 128 is standard)
+        self.layer2 = nn.Linear(128, 10)  # second layer param: hidden_size(same), desired_output_size(0-9 means 10)
+
+    def forward(self, x):
+        x = x.view(-1, 784)
+        x = self.layer1(x)
+        x = torch.relu(x)
+        x = self.layer2(x)
+        return x
+
+class HandNumDetectorCNN(nn.Module):
+    def __init__(self):
+        super().__init__()
+
+        self.features = nn.Sequential(
             nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
@@ -23,15 +38,16 @@ class HandNumDetector(nn.Module):
         self.classifier = nn.Sequential(
             nn.Linear(32 * 7 * 7, 512),
             nn.ReLU(),
-            nn.Linear(512, 10)
+            nn.Linear(512, 10)  
         )
         
     def forward(self, x):
         x = self.features(x)
-        x = x.view(-1, 32*7*7)
+        x = x.view(-1, 32 * 7 * 7)
         x = self.classifier(x)
         return x
 
+HandNumDetector = HandNumDetectorCNN()
 # transform raw image data into tensors
 transform_pipeline = transforms.Compose([
     transforms.ToTensor()
@@ -42,7 +58,7 @@ def main():
     gpu_device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # instantiate the class
-    HNmodel = HandNumDetector().to(gpu_device)
+    HNmodel = HandNumDetector.to(gpu_device)
 
     # download training data
     train_set = torchvision.datasets.MNIST(
