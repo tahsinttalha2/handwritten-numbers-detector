@@ -10,14 +10,26 @@ class HandNumDetector(nn.Module):
     def __init__(self):
         super().__init__()
 
-        self.layer1 = nn.Linear(784, 128) # first layer param: input_size(28 x 28 = 784), hidden_size(random, 128 is standard)
-        self.layer2 = nn.Linear(128, 10)  # second layer param: hidden_size(same), desired_output_size(0-9 means 10)
+        self.features == nn.Sequential(
+            nn.Conv2d(in_channels=1, out_channels=16, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2),
 
+            nn.Conv2d(in_channels=16, out_channels=32, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2, 2)
+        )
+
+        self.classifier = nn.Sequential(
+            nn.Linear(32 * 7 * 7, 512),
+            nn.ReLU(),
+            nn.Linear(512, 10)
+        )
+        
     def forward(self, x):
-        x = x.view(-1, 784)
-        x = self.layer1(x)
-        x = torch.relu(x)
-        x = self.layer2(x)
+        x = self.features(x)
+        x = x.view(-1, 32*7*7)
+        x = self.classifier(x)
         return x
 
 # transform raw image data into tensors
@@ -122,7 +134,7 @@ def main():
         plot.title(f"Label: {labels[0].item()} | Prediction: {predicted[0].item()}")
         plot.savefig(f"my_prediction{i}.png")
 
-    torch.save(HNmodel.state_dict(), "HNmodel1.pth")
+    torch.save(HNmodel.state_dict(), "HNmodel2.pth")
 
 if __name__ == "__main__":
     main()
