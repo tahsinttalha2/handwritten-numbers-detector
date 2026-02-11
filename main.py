@@ -135,21 +135,6 @@ def main():
 
         print(f"Accuracy: {100 * correct / total}%")
 
-    # perform inference
-    for i in range(10):
-        data_iterator = iter(test_loader)
-        images, labels = next(data_iterator)
-        images = images.to(gpu_device)
-        outputs = HNmodel(images)
-
-        _, predicted = torch.max(outputs, 1)
-
-        img = images[0].cpu().squeeze()
-
-        plot.imshow(img, cmap= "gray")
-        plot.title(f"Label: {labels[0].item()} | Prediction: {predicted[0].item()}")
-        plot.savefig(f"my_prediction{i}.png")
-
     torch.save(HNmodel.state_dict(), "HNmodel2.pth")
 
 if __name__ == "__main__":
