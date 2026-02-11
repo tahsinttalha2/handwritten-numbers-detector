@@ -56,7 +56,6 @@ if image is not None:
     #convert to tensor and normalize
     transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.5,), (0.5,))
     ])
 
     image = transform(image).unsqueeze(0)
