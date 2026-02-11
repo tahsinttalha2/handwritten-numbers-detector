@@ -7,13 +7,13 @@ sys.path.append(os.path.abspath(os.path.dirname(__file__)))
 import streamlit as st
 import torch
 import torchvision.transforms as transforms
-from main import HandNumDetector
+from main import HandNumDetectorLinear, HandNumDetectorCNN
 from PIL import Image, ImageOps
 import numpy as np
 
 @st.cache_resource
 def load_model(model_name):
-    model = HandNumDetector()
+    model = HandNumDetectorLinear() if model_name == "HNmodel1.pth" else HandNumDetectorCNN()
     gpu_device = "cuda" if torch.cuda.is_available() else "cpu"
     model.load_state_dict(torch.load(model_name, map_location= torch.device(gpu_device)))
     model.eval()
