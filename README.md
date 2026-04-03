@@ -20,7 +20,7 @@ This project features two models, linear and CNN, both trained on the MNIST data
 
 ## Tech Stack
 - Python
-- TensorFlow / Keras
+- Pytorch
 - Streamlit
 - NumPy
 - Matplotlib
