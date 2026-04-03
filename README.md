@@ -26,8 +26,8 @@ This project features two models, linear and CNN, both trained on the MNIST data
 - Matplotlib
 
 ## Run Locally
-``git clone https://github.com/tahsinttalha2/handwritten-numbers-detector``
-``pip install -r requirements.txt``
-``streamlit run app.py``
+```git clone https://github.com/tahsinttalha2/handwritten-numbers-detector
+pip install -r requirements.txt
+streamlit run app.py```
 
 Check out the models from here: https://handwritten-numbers-detector-tahsinttalha.streamlit.app/
